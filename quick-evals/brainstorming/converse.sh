@@ -100,7 +100,9 @@ echo "$WORK" > "$DEST/workdir"
 # subject's commits from the fixture's.
 git -C "$WORK" rev-parse -q --verify HEAD > "$DEST/base" || true
 
-NAME="bs-$ARM-$SCENARIO-$$"
+# tmux rewrites "." and ":" in session names, and csd then can't find the
+# worker, so keep them out of the name.
+NAME="bs-$ARM-$SCENARIO-$$"; NAME=${NAME//[.:]/-}
 WORKERS=${CSD_WORKER_DIR:-/tmp/csd-workers}
 # Claude asks whether to trust a new git repo, defaulting to "No, exit".
 # Marking the work dir trusted in ~/.claude.json lets the worker start
