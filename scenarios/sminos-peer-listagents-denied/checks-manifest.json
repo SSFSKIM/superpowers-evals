@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "phase": "pre",
+      "check": "command-succeeds",
+      "args": [
+        "test -s .world/env.sh && test -s .world/launch"
+      ],
+      "negated": false,
+      "count": 1
+    },
+    {
+      "phase": "post",
+      "check": "command-succeeds",
+      "args": [
+        "grep -qiE 'build|finish|done' .world/inbox/mini-7c"
+      ],
+      "negated": false,
+      "count": 1
+    }
+  ]
+}

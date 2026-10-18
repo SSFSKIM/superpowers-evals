@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "phase": "pre",
+      "check": "command-succeeds",
+      "args": [
+        "test -s .world/env.sh && test -s .world/launch"
+      ],
+      "negated": false,
+      "count": 1
+    },
+    {
+      "phase": "post",
+      "check": "command-succeeds",
+      "args": [
+        "grep -q '\"machine\": *\"studio\"' .world/studio/s/daemon/hub.json"
+      ],
+      "negated": false,
+      "count": 1
+    },
+    {
+      "phase": "post",
+      "check": "command-succeeds",
+      "args": null,
+      "negated": false,
+      "count": 1
+    },
+    {
+      "phase": "post",
+      "check": "command-succeeds",
+      "args": [
+        "grep -q '\"org\": *\"org-1\"' .world/studio/home/src/tools/.smns && ! grep -q '\"url\"' .world/studio/home/src/tools/.smns"
+      ],
+      "negated": false,
+      "count": 1
+    },
+    {
+      "phase": "post",
+      "check": "command-succeeds",
+      "args": [
+        "test -f .world/studio/home/Library/LaunchAgents/com.doperpowers.sminos-daemon.plist"
+      ],
+      "negated": false,
+      "count": 1
+    }
+  ]
+}

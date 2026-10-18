@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "phase": "pre",
+      "check": "command-succeeds",
+      "args": [
+        "test -s .world/env.sh && test -s .world/launch"
+      ],
+      "negated": false,
+      "count": 1
+    },
+    {
+      "phase": "post",
+      "check": "command-succeeds",
+      "args": [
+        "grep -q 26.04 .world/inbox/gate-keeper"
+      ],
+      "negated": false,
+      "count": 1
+    },
+    {
+      "phase": "post",
+      "check": "command-succeeds",
+      "args": [
+        "! grep -l 26.04 .world/inbox/docs .world/inbox/desk-web .world/inbox/executor-maws .world/inbox/executor-doperpowers .world/inbox/mini-7c .world/inbox/parser"
+      ],
+      "negated": false,
+      "count": 1
+    }
+  ]
+}
