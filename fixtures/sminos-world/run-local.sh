@@ -121,14 +121,20 @@ done
 "${TM[@]}" send-keys -t "$NAME" -l "$PROMPT"
 sleep 1
 "${TM[@]}" send-keys -t "$NAME" Enter
-# An Enter the terminal swallowed leaves the prompt typed and unsent (seen once:
-# a run timed out idle): one more, if no turn has started within 20 s.
-for _ in $(seq 1 20); do [ "$(status)" = busy ] && break; sleep 1; done
-[ "$(status)" = busy ] || "${TM[@]}" send-keys -t "$NAME" Enter
+# An Enter the terminal swallowed leaves the prompt typed and unsent (seen
+# twice: runs timed out idle, one even after a second Enter): another Enter
+# each 15 s with no turn started, three at most; a prompt never submitted ends
+# the run as indeterminate rather than waiting out QUORUM_MAX.
+for attempt in 1 2 3 4; do
+  for _ in $(seq 1 15); do [ "$(status)" = busy ] && break; sleep 1; done
+  [ "$(status)" = busy ] && break
+  [ "$attempt" = 4 ] && { echo "the prompt was never submitted" > "$OUT/timeout"; break; }
+  "${TM[@]}" send-keys -t "$NAME" Enter
+done
 started=$SECONDS
 seen_busy=0
 quiet=0
-while :; do
+while [ ! -e "$OUT/timeout" ]; do
   sleep 3
   s="$(status)"
   [ "$s" = busy ] && seen_busy=1

@@ -37,8 +37,20 @@ def tool_uses():
                 yield block.get("name", ""), block.get("input") or {}
 
 
+ALIAS_RE = re.compile(r"""(?:^|[\s;&|(])([A-Za-z_][A-Za-z0-9_]*)=["']?(\S*sminos)["']?(?=[\s;&|)]|$)""")
+
+
+def expand(command):
+    """A command with each shell variable bound to the sminos CLI spelled as
+    the CLI (`S=/…/sminos; $S say …` reads as `sminos say …`), so a check's
+    regex matches the verb whichever way the session wrote the call."""
+    for name in {m.group(1) for m in ALIAS_RE.finditer(command)}:
+        command = re.sub(r'"?\$(?:\{%s\}|%s(?![A-Za-z0-9_]))"?' % (name, name), "sminos", command)
+    return command
+
+
 def bash_commands():
-    return [str(i.get("command", "")) for n, i in tool_uses() if n == "Bash"]
+    return [expand(str(i.get("command", ""))) for n, i in tool_uses() if n == "Bash"]
 
 
 def last_text():

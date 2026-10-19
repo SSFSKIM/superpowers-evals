@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "phase": "pre",
+      "check": "command-succeeds",
+      "args": [
+        "test -s .world/env.sh && test -s .world/launch"
+      ],
+      "negated": false,
+      "count": 1
+    },
+    {
+      "phase": "post",
+      "check": "command-succeeds",
+      "args": [
+        "python3 \"$QUORUM_SCENARIO_DIR/../../fixtures/sminos-world/transcript.py\" final 'parser'"
+      ],
+      "negated": false,
+      "count": 1
+    }
+  ]
+}

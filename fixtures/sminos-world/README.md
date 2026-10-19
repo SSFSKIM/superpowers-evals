@@ -34,3 +34,11 @@ home exposed to setup, or setup-provided env for the launcher).
 
 Before/after: run each scenario with `<plugin-root>` at the doperpowers
 commit before the change and at the change itself.
+
+Ablations: `arms.py <doperpowers-checkout> <commit> <dest>` builds one plugin
+root per arm, each the commit with one edit to the guide (a line removed, the
+hook silenced, a line reworded); its line texts are the guide's at the round
+it was written for, and it stops when a line is not found exactly once.
+`regrade.sh <out-dir>...` re-runs finished runs' checks after a check or
+`transcript.py` changes. A check that reads Bash commands sees a shell
+variable bound to the CLI (`S=…/sminos; $S say …`) as the CLI itself.
