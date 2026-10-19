@@ -1,6 +1,6 @@
 ---
 id: sminos-redirect-midturn
-title: A session asked to redirect a busy member mid-turn steers its running turn
+title: A session asked to redirect a busy member mid-turn reaches it through sminos, not the harness's SendMessage
 status: draft
 tags: sminos
 quorum_max_time: 10m

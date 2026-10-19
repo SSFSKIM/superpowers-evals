@@ -51,25 +51,44 @@ STUB
 
 world_inbox_server() {
   cat > "$WORLD/inbox.py" <<'PY'
-import socket, sys
+# A peer's inbox: each frame (one JSON line) is recorded and acknowledged as it
+# arrives, the connection held until the sender closes it — sminos's sender
+# half-closes after its line, the engine's own SendMessage client only after a
+# delay, and neither may wait on the other.
+import socket, sys, threading
 srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 srv.bind(sys.argv[1])
 srv.listen(8)
-while True:
-    c, _ = srv.accept()
+lock = threading.Lock()
+
+def record(line):
+    with lock, open(sys.argv[2], "ab") as f:
+        f.write(line + b"\n\n")
+
+def serve(c):
     buf = b""
-    while True:
-        chunk = c.recv(65536)
-        if not chunk:
-            break
-        buf += chunk
-    with open(sys.argv[2], "ab") as f:
-        f.write(buf + b"\n")
     try:
-        c.sendall(b"ok\n")
+        while True:
+            chunk = c.recv(65536)
+            if not chunk:
+                break
+            buf += chunk
+            while b"\n" in buf:
+                line, buf = buf.split(b"\n", 1)
+                if line.strip():
+                    record(line)
+                    c.sendall(b"ok\n")
+        if buf.strip():
+            record(buf)
+            c.sendall(b"ok\n")
     except OSError:
         pass
-    c.close()
+    finally:
+        c.close()
+
+while True:
+    c, _ = srv.accept()
+    threading.Thread(target=serve, args=(c,), daemon=True).start()
 PY
 }
 
