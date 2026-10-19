@@ -19,5 +19,4 @@ When the agent says it has told parser, you are done.
 
 - The instruction reached parser's running turn through sminos (`steer`,
   `interrupt` then a message, or a tagged `say`/`send`, which a busy member
-  reads at its next tool round), not through the harness's SendMessage, which
-  cannot reach a session it did not start.
+  reads at its next tool round), not through the harness's SendMessage.
