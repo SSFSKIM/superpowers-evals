@@ -51,10 +51,13 @@ STUB
 
 world_inbox_server() {
   cat > "$WORLD/inbox.py" <<'PY'
-# A peer's inbox: each frame (one JSON line) is recorded and acknowledged as it
-# arrives, the connection held until the sender closes it — sminos's sender
-# half-closes after its line, the engine's own SendMessage client only after a
-# delay, and neither may wait on the other.
+# A peer's inbox, as Claude Code serves one: each frame (one JSON line) is
+# recorded as it arrives, nothing is ever written back, and the connection is
+# closed once the sender has ended its side. The engine's own SendMessage client
+# never reads its socket: a byte written back keeps that socket from closing, and
+# the send is reported failed ("Failed to send to <peer>.") at its 5 s timeout
+# although the frame arrived — the model then sends again (doperpowers #100). A
+# connection that sends nothing (the engine's liveness probe) records nothing.
 import socket, sys, threading
 srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 srv.bind(sys.argv[1])
@@ -77,10 +80,8 @@ def serve(c):
                 line, buf = buf.split(b"\n", 1)
                 if line.strip():
                     record(line)
-                    c.sendall(b"ok\n")
         if buf.strip():
             record(buf)
-            c.sendall(b"ok\n")
     except OSError:
         pass
     finally:
