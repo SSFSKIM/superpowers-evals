@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The sminos org a scenario runs in: two machines enrolled in one desk-hub org,
-# simulated on one host as doperpowers' own suites do (tests/sminos/test-address.sh):
-# a hub stand-in (tests/sminos/hub_standin.py) on 127.0.0.1, and for each machine
+# simulated on one host as the sminos plugin's own suites do (tests/test-address.sh):
+# a hub stand-in (the sminos plugin's tests/hub_standin.py) on 127.0.0.1, and for each machine
 # its own HOME and SMINOS_HOME, enrolled through the stand-in, with its sminos
 # daemon running. The session under test runs on `macbook`; the peers are live
 # sessions whose inboxes write every frame they receive to $WORLD/inbox/<alias>.
@@ -159,13 +159,14 @@ world_enroll() { # machine
   "$SMINOS" hub enroll <<<"$(world_ctl code "$1")" >/dev/null
 }
 
-world_up() { # world-dir plugin-root
+world_up() { # world-dir plugin-root — a doperpowers tree with the sminos plugin at sminos/, or the sminos plugin itself
   # The world itself lives at a short path, the world-dir a link to it: a unix
   # socket's path (an inbox, a session's bridge under SMINOS_HOME) is bounded
   # at about 104 bytes.
   [ -e "$1" ] || ln -s "$(mktemp -d /tmp/sw.XXXXXX)" "$1"
   WORLD="$(cd "$1" && pwd -P)"
   PLUGIN="$(cd "$2" && pwd -P)"
+  [ -d "$PLUGIN/sminos/skills/sminos" ] && PLUGIN="$PLUGIN/sminos"   # sminos, a plugin of its own since 1.0.0
   export WORLD PLUGIN WORLD_CALLS="$WORLD/calls"
   SMINOS="$PLUGIN/skills/sminos/scripts/sminos"
   : > "$WORLD/pids"
@@ -175,7 +176,7 @@ world_up() { # world-dir plugin-root
   unset CLAUDE_CODE_SESSION_ID SMNS_INTERNAL DAEMON_HOME CLAUDE_PLUGIN_ROOT CLAUDE_PROJECT_DIR
   export PATH="$WORLD/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin" SMINOS_DERIVE_EVERY=0
 
-  python3 "$PLUGIN/tests/sminos/hub_standin.py" "$WORLD/hub.port" cid-0 secret-0 1000 >> "$WORLD/hub.out" 2>&1 &
+  python3 "$PLUGIN/tests/hub_standin.py" "$WORLD/hub.port" cid-0 secret-0 1000 >> "$WORLD/hub.out" 2>&1 &
   echo "$!" >> "$WORLD/pids"
   world_until test -s "$WORLD/hub.port"
 

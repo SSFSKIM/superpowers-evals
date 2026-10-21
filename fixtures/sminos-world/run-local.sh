@@ -4,11 +4,16 @@
 #
 #   run-local.sh <scenario-dir> <plugin-root> <out-dir>
 #
-# The scenario's setup.sh builds the org (world.sh) under <out-dir>/work/.world
-# with <plugin-root> as the doperpowers plugin; the session under test then
+# <plugin-root> is a doperpowers tree with the sminos plugin at its sminos/
+# (arms.py builds one per arm). The scenario's setup.sh builds the org
+# (world.sh) under <out-dir>/work/.world from it; the session under test then
 # starts in tmux (its own server, -L sminos-eval) from the directory setup.sh
-# wrote to .world/launch, with the world's HOME, SMINOS_HOME and PATH, the
-# plugin loaded from <plugin-root> (--plugin-dir), --dangerously-skip-permissions
+# wrote to .world/launch, with the world's HOME, SMINOS_HOME and PATH, and the
+# plugins a session on the owner's machines has: sminos, installed where the
+# marketplace installs it (a copy at the world HOME's
+# .claude/plugins/cache/doperpowers/sminos/<version>, so the guide names the
+# CLI by a path of the installed shape and length), and doperpowers from
+# <plugin-root> (each by --plugin-dir), --dangerously-skip-permissions
 # (stubs stand in for claude, launchctl, systemctl and loginctl), and any
 # flags setup.sh wrote to .world/claude-args. The story's first turn (the
 # blockquote after "First turn") is typed in; the run ends when the session's
@@ -49,6 +54,10 @@ fi
 # shellcheck source=/dev/null
 source "$W/env.sh"
 LAUNCH="$(cat "$W/launch")"
+SMINOS_VERSION="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/sminos/.claude-plugin/plugin.json")"
+SMINOS_ROOT="$HOME/.claude/plugins/cache/doperpowers/sminos/$SMINOS_VERSION"
+mkdir -p "$(dirname "$SMINOS_ROOT")"
+cp -R "$ROOT/sminos" "$SMINOS_ROOT"
 EXTRA="$(cat "$W/claude-args" 2>/dev/null || true)"
 mkdir -p "$HOME/.claude"
 python3 - "$LAUNCH" "$HOME" <<'PY'
@@ -91,7 +100,7 @@ exec env -i HOME="$HOME" SMINOS_HOME="$SMINOS_HOME" DAEMON_HOST="$DAEMON_HOST" P
   ANTHROPIC_API_KEY="\${ANTHROPIC_API_KEY:-}" \\
   ANTHROPIC_DEFAULT_OPUS_MODEL="\${ANTHROPIC_DEFAULT_OPUS_MODEL:-}" ANTHROPIC_DEFAULT_SONNET_MODEL="\${ANTHROPIC_DEFAULT_SONNET_MODEL:-}" \\
   ANTHROPIC_DEFAULT_HAIKU_MODEL="\${ANTHROPIC_DEFAULT_HAIKU_MODEL:-}" ANTHROPIC_DEFAULT_FABLE_MODEL="\${ANTHROPIC_DEFAULT_FABLE_MODEL:-}" \\
-  "$CLAUDE_BIN" --dangerously-skip-permissions --plugin-dir "$ROOT" --model "\${EVAL_MODEL:-opus}" $EXTRA
+  "$CLAUDE_BIN" --dangerously-skip-permissions --plugin-dir "$SMINOS_ROOT" --plugin-dir "$ROOT" --model "\${EVAL_MODEL:-opus}" $EXTRA
 SH
 chmod +x "$OUT/launch.sh"
 
